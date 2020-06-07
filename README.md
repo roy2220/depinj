@@ -1,5 +1,7 @@
 # depinj
 
+[![GoDoc](https://godoc.org/github.com/roy2220/depinj?status.svg)](https://godoc.org/github.com/roy2220/depinj) [![Build Status](https://travis-ci.com/roy2220/depinj.svg?branch=master)](https://travis-ci.com/roy2220/depinj) [![Coverage Status](https://codecov.io/gh/roy2220/depinj/branch/master/graph/badge.svg)](https://codecov.io/gh/roy2220/depinj)
+
 Dependency injection for Go
 
 ## Requirements

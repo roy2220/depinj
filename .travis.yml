@@ -1,0 +1,20 @@
+language: minimal
+
+services:
+  - docker
+
+cache:
+  directories:
+    - build/cache
+
+before_script:
+  - scripts/ci/docker-image.sh tryload depinj-builder:latest
+
+script:
+  - make USE_DOCKER=1
+
+before_cache:
+  - scripts/ci/docker-image.sh trysave depinj-builder:latest
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -20,8 +20,7 @@ lint: force
 	@go run golang.org/x/lint/golint -set_exit_status $(LINTFLAGS) ./...
 
 test: force
-	@go test -covermode=count -coverprofile=test/coverage.out $(TESTFLAGS) ./...
-	@go tool cover -html=test/coverage.out -o test/coverage.html
+	@go test -coverprofile=coverage.txt -covermode=count $(TESTFLAGS) ./...
 
 endif # ifdef USE_DOCKER
 
