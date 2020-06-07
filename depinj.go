@@ -119,7 +119,9 @@ func (pp *PodPool) resolve() error {
 // Pod represents a container for dependency injection.
 type Pod interface {
 	// ResolveRefLink resolves the given ref link into a ref id.
-	// It returns false if the ref link is unresolvable.
+	// It returns false if the ref link is unresolvable. When it
+	// is called, the fields of the import/export/filter entries
+	// have not yet been initialized, don't access theme.
 	ResolveRefLink(refLink string) (refID string, ok bool)
 
 	// SetUp is called along with the setup of PodPool. When it

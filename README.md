@@ -54,7 +54,7 @@ type StrangerB struct {
 }
 
 func (s *StrangerB) SetUp(context.Context) error {
-        // s.Greeting == "Hi!"
+        // fields of the import entries have been initialized, s.Greeting == "Hi!"
         fmt.Println(s.Greeting) // get the greeting
         return nil
 }
@@ -100,7 +100,7 @@ type StrangerB struct {
 }
 
 func (s *StrangerB) SetUp(context.Context) error {
-        // s.Greeting == "Hi! Jack!"
+        // fields of the import entries have been initialized and filtered, s.Greeting == "Hi! Jack!"
         fmt.Println(s.Greeting) // get the greeting
         return nil
 }
@@ -111,8 +111,12 @@ type Hijacker struct {
         Greeting *string `filter:"the_greeting,ModifyGreeting,0"`
         // filter by ref id `the_greeting`, method `ModifyGreeting` and priority `0`
         //
-        // The higher priority value, the earlier call to the method, it's useful if
-        // there are multiple filter entries for one export entry.
+        // The filter method is called after the pod has been set up (SetUp method),
+        // it's safe to access the fields of the import or export entries in the pod,
+        // which have been initialized, within the filter method.
+        //
+        // The higher priority value, the earlier call to the filter method, it's
+        // useful if there are multiple filter entries for one export entry.
 }
 
 func (h *Hijacker) ModifyGreeting(context.Context) error {
@@ -168,7 +172,7 @@ func (s *StrangerB) ResolveRefLink(refLink string) (string, bool) {
 }
 
 func (s *StrangerB) SetUp(context.Context) error {
-        // s.Greeting == "Hello!"
+        // fields of the import entries have been initialized, s.Greeting == "Hello!"
         fmt.Println(s.Greeting) // get the greeting
         return nil
 }
@@ -193,28 +197,30 @@ func main() {
         podPool.MustAddPod(&Bar{})
         podPool.MustSetUp(context.Background())
         podPool.TearDown()
-        // Output: :-(
+        // Output: unknown error
 }
 
 type Foo struct {
         depinj.DummyPod // default implementation of depinj.Pod
 
-        Err error `export:""` // omitted ref id, export by field type `error`
+        Err error `export:""` // ref id omitted, export by field type `error`
 }
 
+var ErrUnknown = errors.New("unknown error")
+
 func (f *Foo) SetUp(context.Context) error {
-        f.Err = errors.New(":-(") // set the error
+        f.Err = ErrUnknown // set the error
         return nil
 }
 
 type Bar struct {
         depinj.DummyPod // default implementation of depinj.Pod
 
-        Err error `import:""` // omitted ref id, import by field type `error`
+        Err error `import:""` // ref id omitted, import by field type `error`
 }
 
 func (b *Bar) SetUp(context.Context) error {
-        // s.Greeting == "Hi!"
+        // fields of the import entries have been initialized, b.Err == ErrUnknown
         fmt.Println(b.Err) // get the error
         return nil
 }
