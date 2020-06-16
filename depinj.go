@@ -182,13 +182,13 @@ func (p *pod) ParseRaw(raw Pod) error {
 	value := reflect.ValueOf(raw)
 
 	if value.Kind() != reflect.Ptr {
-		return fmt.Errorf("%w: non-pointer type: podType=%q", ErrInvalidPod, value.Type())
+		return fmt.Errorf("%w: non-pointer type; podType=%q", ErrInvalidPod, value.Type())
 	}
 
 	structureValue := value.Elem()
 
 	if structureValue.Kind() != reflect.Struct {
-		return fmt.Errorf("%w: non-structure pointer type: podType=%q", ErrInvalidPod, value.Type())
+		return fmt.Errorf("%w: non-structure pointer type; podType=%q", ErrInvalidPod, value.Type())
 	}
 
 	if err := p.parseStructure(nil, structureValue); err != nil {
@@ -196,7 +196,7 @@ func (p *pod) ParseRaw(raw Pod) error {
 	}
 
 	if len(p.ImportEntries)+len(p.ExportEntries)+len(p.FilterEntries) == 0 {
-		return fmt.Errorf("%w: no import/export/filter entry: podType=%q", ErrInvalidPod, value.Type())
+		return fmt.Errorf("%w: no import/export/filter entry; podType=%q", ErrInvalidPod, value.Type())
 	}
 
 	return nil
@@ -262,7 +262,7 @@ func (p *pod) SetUp(ctx context.Context) (returnedErr error) {
 	}
 
 	if err := p.Raw.SetUp(ctx); err != nil {
-		return fmt.Errorf("depinj: pod setup failed: pod=%#v | %w", p.Raw, err)
+		return fmt.Errorf("depinj: pod setup failed; pod=%#v: %w", p.Raw, err)
 	}
 
 	defer func() {
@@ -280,7 +280,7 @@ func (p *pod) SetUp(ctx context.Context) (returnedErr error) {
 
 		for _, filterEntry := range exportEntry.FilterEntries {
 			if err := filterEntry.Function(ctx); err != nil {
-				return fmt.Errorf("depinj: filter function failed: pod=%#v | %w", p.Raw, err)
+				return fmt.Errorf("depinj: filter function failed; pod=%#v: %w", p.Raw, err)
 			}
 		}
 	}
@@ -359,7 +359,7 @@ func (p *pod) doResolve3(context *resolution3Context, targetEntryPath string) er
 		context.LeavePod()
 		return nil
 	case resolution3PodEntered:
-		return fmt.Errorf("%w: stackTrace=%q", ErrPodCircularDependency, context.DumpStack())
+		return fmt.Errorf("%w; stackTrace=%q", ErrPodCircularDependency, context.DumpStack())
 	}
 
 	for i := range p.ImportEntries {
@@ -466,7 +466,7 @@ func (ie *importEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	}
 
 	if fieldInfo.Descriptor.PkgPath != "" {
-		return false, fmt.Errorf("%w: field unexported: importEntryPath=%q",
+		return false, fmt.Errorf("%w: field unexported; importEntryPath=%q",
 			ErrBadImportEntry, ie.Path)
 	}
 
@@ -477,7 +477,7 @@ func (ie *importEntry) Resolve1(pod *pod) error {
 	ie.Pod = pod
 
 	if refLink, ok := ie.ResolveRefLink(pod); !ok {
-		return fmt.Errorf("%w: unresolvable ref link: importEntryPath=%q refLink=%q",
+		return fmt.Errorf("%w: unresolvable ref link; importEntryPath=%q refLink=%q",
 			ErrBadImportEntry, ie.Path, refLink)
 	}
 
@@ -490,7 +490,7 @@ func (ie *importEntry) Resolve2(context *resolution12Context) error {
 		ie.ExportEntry, ok = context.FindExportEntryByFieldType(ie.FieldType)
 
 		if !ok {
-			return fmt.Errorf("%w: export entry not found by field type: importEntryPath=%q fieldType=%q",
+			return fmt.Errorf("%w: export entry not found by field type; importEntryPath=%q fieldType=%q",
 				ErrBadImportEntry, ie.Path, ie.FieldType)
 		}
 	} else {
@@ -498,12 +498,12 @@ func (ie *importEntry) Resolve2(context *resolution12Context) error {
 		ie.ExportEntry, ok = context.FindExportEntryByRefID(ie.RefID)
 
 		if !ok {
-			return fmt.Errorf("%w: export entry not found by ref id: importEntryPath=%q refID=%q",
+			return fmt.Errorf("%w: export entry not found by ref id; importEntryPath=%q refID=%q",
 				ErrBadImportEntry, ie.Path, ie.RefID)
 		}
 
 		if expectedFieldType := ie.ExportEntry.FieldType; ie.FieldType != expectedFieldType {
-			return fmt.Errorf("%w: field type mismatch: importEntryPath=%q fieldType=%q expectedFieldType=%q exportEntryPath=%q",
+			return fmt.Errorf("%w: field type mismatch; importEntryPath=%q fieldType=%q expectedFieldType=%q exportEntryPath=%q",
 				ErrBadImportEntry, ie.Path, ie.FieldType, expectedFieldType, ie.ExportEntry.Path)
 		}
 	}
@@ -529,7 +529,7 @@ func (ee *exportEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	}
 
 	if fieldInfo.Descriptor.PkgPath != "" {
-		return false, fmt.Errorf("%w: field unexported: exportEntryPath=%q",
+		return false, fmt.Errorf("%w: field unexported; exportEntryPath=%q",
 			ErrBadExportEntry, ee.Path)
 	}
 
@@ -540,18 +540,18 @@ func (ee *exportEntry) Resolve1(context *resolution12Context, pod *pod) error {
 	ee.Pod = pod
 
 	if refLink, ok := ee.ResolveRefLink(pod); !ok {
-		return fmt.Errorf("%w: unresolvable ref link: exportEntryPath=%q refLink=%q",
+		return fmt.Errorf("%w: unresolvable ref link; exportEntryPath=%q refLink=%q",
 			ErrBadExportEntry, ee.Path, refLink)
 	}
 
 	if ee.RefID == "" {
 		if conflicting, ok := context.AddExportEntryByFieldType(ee, ee.FieldType); !ok {
-			return fmt.Errorf("%w: duplicate field type: exportEntryPath=%q conflictingExportEntryPath=%q fieldType=%q",
+			return fmt.Errorf("%w: duplicate field type; exportEntryPath=%q conflictingExportEntryPath=%q fieldType=%q",
 				ErrBadExportEntry, ee.Path, conflicting.Path, ee.FieldType)
 		}
 	} else {
 		if conflicting, ok := context.AddExportEntryByRefID(ee, ee.RefID); !ok {
-			return fmt.Errorf("%w: duplicate ref id: exportEntryPath=%q conflictingExportEntryPath=%q refID=%q",
+			return fmt.Errorf("%w: duplicate ref id; exportEntryPath=%q conflictingExportEntryPath=%q refID=%q",
 				ErrBadExportEntry, ee.Path, conflicting.Path, ee.RefID)
 		}
 	}
@@ -578,17 +578,17 @@ func (fe *filterEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	}
 
 	if fieldInfo.Descriptor.PkgPath != "" {
-		return false, fmt.Errorf("%w: field unexported: filterEntryPath=%q",
+		return false, fmt.Errorf("%w: field unexported; filterEntryPath=%q",
 			ErrBadFilterEntry, fe.Path)
 	}
 
 	if fe.FieldType.Kind() != reflect.Ptr {
-		return false, fmt.Errorf("%w: non-pointer field type: filterEntryPath=%q fieldType=%q",
+		return false, fmt.Errorf("%w: non-pointer field type; filterEntryPath=%q fieldType=%q",
 			ErrBadFilterEntry, fe.Path, fe.FieldType)
 	}
 
 	if len(args) < 2 {
-		return false, fmt.Errorf("%w: missing argument `methodName`: filterEntryPath=%q",
+		return false, fmt.Errorf("%w: missing argument `methodName`; filterEntryPath=%q",
 			ErrBadFilterEntry, fe.Path)
 	}
 
@@ -596,7 +596,7 @@ func (fe *filterEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	functionValue := fieldInfo.StructureValue.Addr().MethodByName(methodName)
 
 	if !functionValue.IsValid() {
-		return false, fmt.Errorf("%w: method undefined or unexported: filterEntryPath=%q methodName=%q",
+		return false, fmt.Errorf("%w: method undefined or unexported; filterEntryPath=%q methodName=%q",
 			ErrBadFilterEntry, fe.Path, methodName)
 	}
 
@@ -604,12 +604,12 @@ func (fe *filterEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	fe.Function, ok = rawFunction.(func(context.Context) error)
 
 	if !ok {
-		return false, fmt.Errorf("%w: function type mismatch (expected `%T`, got `%T`): filterEntryPath=%q methodName=%q",
+		return false, fmt.Errorf("%w: function type mismatch (expected `%T`, got `%T`); filterEntryPath=%q methodName=%q",
 			ErrBadFilterEntry, fe.Function, rawFunction, fe.Path, methodName)
 	}
 
 	if len(args) < 3 {
-		return false, fmt.Errorf("%w: missing argument `priority`: filterEntryPath=%q",
+		return false, fmt.Errorf("%w: missing argument `priority`; filterEntryPath=%q",
 			ErrBadFilterEntry, fe.Path)
 	}
 
@@ -618,7 +618,7 @@ func (fe *filterEntry) ParseField(fieldInfo *fieldInfo) (bool, error) {
 	fe.Priority, err = strconv.Atoi(priorityStr)
 
 	if err != nil {
-		return false, fmt.Errorf("%w: priority parse failed: filterEntryPath=%q priorityStr=%q | %v",
+		return false, fmt.Errorf("%w: priority parse failed; filterEntryPath=%q priorityStr=%q: %v",
 			ErrBadFilterEntry, fe.Path, priorityStr, err)
 	}
 
@@ -629,7 +629,7 @@ func (fe *filterEntry) Resolve1(pod *pod) error {
 	fe.Pod = pod
 
 	if refLink, ok := fe.ResolveRefLink(pod); !ok {
-		return fmt.Errorf("%w: unresolvable ref link: filterEntryPath=%q refLink=%q",
+		return fmt.Errorf("%w: unresolvable ref link; filterEntryPath=%q refLink=%q",
 			ErrBadFilterEntry, fe.Path, refLink)
 	}
 
@@ -645,7 +645,7 @@ func (fe *filterEntry) Resolve2(context *resolution12Context) error {
 		exportEntry, ok = context.FindExportEntryByFieldType(fieldType)
 
 		if !ok {
-			return fmt.Errorf("%w: export entry not found by field type: filterEntryPath=%q fieldType=%q",
+			return fmt.Errorf("%w: export entry not found by field type; filterEntryPath=%q fieldType=%q",
 				ErrBadFilterEntry, fe.Path, fieldType)
 		}
 	} else {
@@ -653,12 +653,12 @@ func (fe *filterEntry) Resolve2(context *resolution12Context) error {
 		exportEntry, ok = context.FindExportEntryByRefID(fe.RefID)
 
 		if !ok {
-			return fmt.Errorf("%w: export entry not found by ref id: filterEntryPath=%q refID=%q",
+			return fmt.Errorf("%w: export entry not found by ref id; filterEntryPath=%q refID=%q",
 				ErrBadFilterEntry, fe.Path, fe.RefID)
 		}
 
 		if expectedFieldType := reflect.PtrTo(exportEntry.FieldType); fe.FieldType != expectedFieldType {
-			return fmt.Errorf("%w: field type mismatch: filterEntryPath=%q fieldType=%q expectedFieldType=%q exportEntryPath=%q",
+			return fmt.Errorf("%w: field type mismatch; filterEntryPath=%q fieldType=%q expectedFieldType=%q exportEntryPath=%q",
 				ErrBadFilterEntry, fe.Path, fe.FieldType, expectedFieldType, exportEntry.Path)
 		}
 	}

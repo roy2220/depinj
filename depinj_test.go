@@ -192,9 +192,9 @@ func TestErrInvalidPod(t *testing.T) {
 		Err    error
 		ErrMsg string
 	}{
-		{podA1(0), depinj.ErrInvalidPod, "depinj: invalid pod: non-pointer type: podType=\"depinj_test.podA1\""},
-		{&p, depinj.ErrInvalidPod, "depinj: invalid pod: non-structure pointer type: podType=\"*depinj_test.podA1\""},
-		{&depinj.DummyPod{}, depinj.ErrInvalidPod, "depinj: invalid pod: no import/export/filter entry: podType=\"*depinj.DummyPod\""},
+		{podA1(0), depinj.ErrInvalidPod, "depinj: invalid pod: non-pointer type; podType=\"depinj_test.podA1\""},
+		{&p, depinj.ErrInvalidPod, "depinj: invalid pod: non-structure pointer type; podType=\"*depinj_test.podA1\""},
+		{&depinj.DummyPod{}, depinj.ErrInvalidPod, "depinj: invalid pod: no import/export/filter entry; podType=\"*depinj.DummyPod\""},
 	} {
 		pp := depinj.PodPool{}
 		err := pp.AddPod(tt.Pod)
@@ -273,16 +273,16 @@ func TestFieldParseFailed(t *testing.T) {
 		Err    error
 		ErrMsg string
 	}{
-		{&podB1{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: non-pointer field type: filterEntryPath=\"depinj_test.podB1.Foo\" fieldType=\"int\""},
-		{&podB2{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: missing argument `methodName`: filterEntryPath=\"depinj_test.podB2.Foo\""},
-		{&podB3{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: method undefined or unexported: filterEntryPath=\"depinj_test.podB3.Foo\" methodName=\"ModifyFoo\""},
-		{&podB4{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: method undefined or unexported: filterEntryPath=\"depinj_test.podB4.Foo\" methodName=\"modifyFoo\""},
-		{&podB5{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: function type mismatch (expected `func(context.Context) error`, got `func() error`): filterEntryPath=\"depinj_test.podB5.Foo\" methodName=\"ModifyFoo\""},
-		{&podB6{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: missing argument `priority`: filterEntryPath=\"depinj_test.podB6.Foo\""},
-		{&podB7{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: priority parse failed: filterEntryPath=\"depinj_test.podB7.Foo\" priorityStr=\"\" | strconv.Atoi: parsing \"\": invalid syntax"},
-		{&podB8{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: field unexported: filterEntryPath=\"depinj_test.podB8.foo\""},
-		{&podB9{}, depinj.ErrBadImportEntry, "depinj: bad import entry: field unexported: importEntryPath=\"depinj_test.podB9.foo\""},
-		{&podB10{}, depinj.ErrBadExportEntry, "depinj: bad export entry: field unexported: exportEntryPath=\"depinj_test.podB10.foo\""},
+		{&podB1{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: non-pointer field type; filterEntryPath=\"depinj_test.podB1.Foo\" fieldType=\"int\""},
+		{&podB2{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: missing argument `methodName`; filterEntryPath=\"depinj_test.podB2.Foo\""},
+		{&podB3{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: method undefined or unexported; filterEntryPath=\"depinj_test.podB3.Foo\" methodName=\"ModifyFoo\""},
+		{&podB4{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: method undefined or unexported; filterEntryPath=\"depinj_test.podB4.Foo\" methodName=\"modifyFoo\""},
+		{&podB5{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: function type mismatch (expected `func(context.Context) error`, got `func() error`); filterEntryPath=\"depinj_test.podB5.Foo\" methodName=\"ModifyFoo\""},
+		{&podB6{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: missing argument `priority`; filterEntryPath=\"depinj_test.podB6.Foo\""},
+		{&podB7{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: priority parse failed; filterEntryPath=\"depinj_test.podB7.Foo\" priorityStr=\"\": strconv.Atoi: parsing \"\": invalid syntax"},
+		{&podB8{}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: field unexported; filterEntryPath=\"depinj_test.podB8.foo\""},
+		{&podB9{}, depinj.ErrBadImportEntry, "depinj: bad import entry: field unexported; importEntryPath=\"depinj_test.podB9.foo\""},
+		{&podB10{}, depinj.ErrBadExportEntry, "depinj: bad export entry: field unexported; exportEntryPath=\"depinj_test.podB10.foo\""},
 	} {
 		pp := depinj.PodPool{}
 		err := pp.AddPod(tt.Pod)
@@ -334,13 +334,13 @@ func TestEntryResolve1Failed(t *testing.T) {
 		Err    error
 		ErrMsg string
 	}{
-		{[]depinj.Pod{&podC1{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: unresolvable ref link: importEntryPath=\"depinj_test.podC1.Foo\" refLink=\"@Foo\""},
-		{[]depinj.Pod{&podC2{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: unresolvable ref link: exportEntryPath=\"depinj_test.podC2.Foo\" refLink=\"@Foo\""},
-		{[]depinj.Pod{&podC3{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: unresolvable ref link: filterEntryPath=\"depinj_test.podC3.Foo\" refLink=\"@Foo\""},
-		{[]depinj.Pod{&podC4{}, &podC5{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate field type: exportEntryPath=\"depinj_test.podC5.podC4.Foo\" conflictingExportEntryPath=\"depinj_test.podC4.Foo\" fieldType=\"int\""},
-		{[]depinj.Pod{&podC5{}, &podC5{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate field type: exportEntryPath=\"depinj_test.podC5.podC4.Foo\" conflictingExportEntryPath=\"depinj_test.podC5.podC4.Foo\" fieldType=\"int\""},
-		{[]depinj.Pod{&podC6{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id: exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC6.Foo\" refID=\"Foo\""},
-		{[]depinj.Pod{&podC7{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id: exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC7.podC6.Foo\" refID=\"Foo\""},
+		{[]depinj.Pod{&podC1{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: unresolvable ref link; importEntryPath=\"depinj_test.podC1.Foo\" refLink=\"@Foo\""},
+		{[]depinj.Pod{&podC2{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: unresolvable ref link; exportEntryPath=\"depinj_test.podC2.Foo\" refLink=\"@Foo\""},
+		{[]depinj.Pod{&podC3{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: unresolvable ref link; filterEntryPath=\"depinj_test.podC3.Foo\" refLink=\"@Foo\""},
+		{[]depinj.Pod{&podC4{}, &podC5{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate field type; exportEntryPath=\"depinj_test.podC5.podC4.Foo\" conflictingExportEntryPath=\"depinj_test.podC4.Foo\" fieldType=\"int\""},
+		{[]depinj.Pod{&podC5{}, &podC5{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate field type; exportEntryPath=\"depinj_test.podC5.podC4.Foo\" conflictingExportEntryPath=\"depinj_test.podC5.podC4.Foo\" fieldType=\"int\""},
+		{[]depinj.Pod{&podC6{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id; exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC6.Foo\" refID=\"Foo\""},
+		{[]depinj.Pod{&podC7{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id; exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC7.podC6.Foo\" refID=\"Foo\""},
 	} {
 		pp := depinj.PodPool{}
 		for _, p := range tt.Pods {
@@ -404,12 +404,12 @@ func TestEntryResolve2Failed(t *testing.T) {
 		Err    error
 		ErrMsg string
 	}{
-		{[]depinj.Pod{&podD1{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: export entry not found by field type: importEntryPath=\"depinj_test.podD1.Foo\" fieldType=\"int\""},
-		{[]depinj.Pod{&podD2{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: export entry not found by ref id: importEntryPath=\"depinj_test.podD2.Foo\" refID=\"Foo\""},
-		{[]depinj.Pod{&podD3{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: export entry not found by field type: filterEntryPath=\"depinj_test.podD3.Foo\" fieldType=\"int\""},
-		{[]depinj.Pod{&podD4{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: export entry not found by ref id: filterEntryPath=\"depinj_test.podD4.Foo\" refID=\"Foo\""},
-		{[]depinj.Pod{&podD5{}, &podD6{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: field type mismatch: importEntryPath=\"depinj_test.podD5.Foo\" fieldType=\"int\" expectedFieldType=\"string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
-		{[]depinj.Pod{&podD7{}, &podD6{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: field type mismatch: filterEntryPath=\"depinj_test.podD7.Foo\" fieldType=\"*int\" expectedFieldType=\"*string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
+		{[]depinj.Pod{&podD1{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: export entry not found by field type; importEntryPath=\"depinj_test.podD1.Foo\" fieldType=\"int\""},
+		{[]depinj.Pod{&podD2{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: export entry not found by ref id; importEntryPath=\"depinj_test.podD2.Foo\" refID=\"Foo\""},
+		{[]depinj.Pod{&podD3{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: export entry not found by field type; filterEntryPath=\"depinj_test.podD3.Foo\" fieldType=\"int\""},
+		{[]depinj.Pod{&podD4{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: export entry not found by ref id; filterEntryPath=\"depinj_test.podD4.Foo\" refID=\"Foo\""},
+		{[]depinj.Pod{&podD5{}, &podD6{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: field type mismatch; importEntryPath=\"depinj_test.podD5.Foo\" fieldType=\"int\" expectedFieldType=\"string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
+		{[]depinj.Pod{&podD7{}, &podD6{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: field type mismatch; filterEntryPath=\"depinj_test.podD7.Foo\" fieldType=\"*int\" expectedFieldType=\"*string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
 	} {
 		pp := depinj.PodPool{}
 		for _, p := range tt.Pods {
@@ -480,10 +480,10 @@ func TestEntryResolve3Failed(t *testing.T) {
 		Err    error
 		ErrMsg string
 	}{
-		{[]depinj.Pod{&podE1{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency: stackTrace=\"depinj_test.podE1.FooI ==> depinj_test.podE1.FooE\""},
-		{[]depinj.Pod{&podE2{}, &podE3{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency: stackTrace=\"depinj_test.podE2.Foo ==> depinj_test.podE3.Foo ... depinj_test.podE3.Bar ==> depinj_test.podE2.Bar\""},
-		{[]depinj.Pod{&podE4{}, &podE5{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency: stackTrace=\"depinj_test.podE4.Bar ==> depinj_test.podE5.Bar ... depinj_test.podE5.Foo ==> depinj_test.podE4.Foo\""},
-		{[]depinj.Pod{&podE6{}, &podE7{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency: stackTrace=\"depinj_test.podE6.Bar ==> depinj_test.podE7.Bar ... depinj_test.podE7.Foo ==> depinj_test.podE6.Foo\""},
+		{[]depinj.Pod{&podE1{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE1.FooI ==> depinj_test.podE1.FooE\""},
+		{[]depinj.Pod{&podE2{}, &podE3{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE2.Foo ==> depinj_test.podE3.Foo ... depinj_test.podE3.Bar ==> depinj_test.podE2.Bar\""},
+		{[]depinj.Pod{&podE4{}, &podE5{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE4.Bar ==> depinj_test.podE5.Bar ... depinj_test.podE5.Foo ==> depinj_test.podE4.Foo\""},
+		{[]depinj.Pod{&podE6{}, &podE7{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE6.Bar ==> depinj_test.podE7.Bar ... depinj_test.podE7.Foo ==> depinj_test.podE6.Foo\""},
 	} {
 		pp := depinj.PodPool{}
 		for _, p := range tt.Pods {
