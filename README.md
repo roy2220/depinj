@@ -32,7 +32,6 @@ func main() {
         podPool.MustAddPod(&StrangerA{})
         podPool.MustAddPod(&StrangerB{})
         podPool.MustSetUp(context.Background())
-        podPool.TearDown()
         // Output: Hi!
 }
 
@@ -42,6 +41,7 @@ type StrangerA struct {
         Greeting string `export:"the_greeting"` // export by ref id `the_greeting`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerA) SetUp(context.Context) error {
         s.Greeting = "Hi!" // set the greeting
         return nil
@@ -53,9 +53,10 @@ type StrangerB struct {
         Greeting string `import:"the_greeting"` // import by ref id `the_greeting`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerB) SetUp(context.Context) error {
-        // fields of the import entries have been initialized, s.Greeting == "Hi!"
-        fmt.Println(s.Greeting) // get the greeting
+        // at this point, `the_greeting` has been imported
+        fmt.Println(s.Greeting) // get the greeting, s.Greeting == "Hi!"
         return nil
 }
 ```
@@ -78,7 +79,6 @@ func main() {
         podPool.MustAddPod(&StrangerB{})
         podPool.MustAddPod(&Hijacker{})
         podPool.MustSetUp(context.Background())
-        podPool.TearDown()
         // Output: Hi! Jack!
 }
 
@@ -88,6 +88,7 @@ type StrangerA struct {
         Greeting string `export:"the_greeting"` // export by ref id `the_greeting`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerA) SetUp(context.Context) error {
         s.Greeting = "Hi!" // set the greeting
         return nil
@@ -99,9 +100,10 @@ type StrangerB struct {
         Greeting string `import:"the_greeting"` // import by ref id `the_greeting`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerB) SetUp(context.Context) error {
-        // fields of the import entries have been initialized and filtered, s.Greeting == "Hi! Jack!"
-        fmt.Println(s.Greeting) // get the greeting
+        // at this point, `the_greeting` has been imported
+        fmt.Println(s.Greeting) // get the greeting, s.Greeting == "Hi! Jack!"
         return nil
 }
 
@@ -111,17 +113,18 @@ type Hijacker struct {
         Greeting *string `filter:"the_greeting,ModifyGreeting,0"`
         // filter by ref id `the_greeting`, method `ModifyGreeting` and priority `0`
         //
-        // The filter method is called after the pod has been set up (SetUp method),
+        // The filter method is called after the pod has been set up (SetUp called),
         // it's safe to access the fields of the import or export entries in the pod,
-        // which have been initialized, within the filter method.
+        // which have been initialized.
         //
         // The higher priority value, the earlier call to the filter method, it's
         // useful if there are multiple filter entries for one export entry.
 }
 
+// ModifyGreeting is designated by the filter tag and called along with podPool.MustSetUp
 func (h *Hijacker) ModifyGreeting(context.Context) error {
-        // modify the greeting after it has been exported and before it has been imported
-        *h.Greeting += " Jack!"
+        // at this point, `the_greeting` has been exported but has not yet been imported by others
+        *h.Greeting += " Jack!" // modify the greeting
         return nil
 }
 ```
@@ -143,7 +146,6 @@ func main() {
         podPool.MustAddPod(&StrangerA{})
         podPool.MustAddPod(&StrangerB{})
         podPool.MustSetUp(context.Background())
-        podPool.TearDown()
         // Output: Hello!
 }
 
@@ -154,6 +156,7 @@ type StrangerA struct {
         Greeting2 string `export:"the_greeting_2"` // export by ref id `the_greeting_2`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerA) SetUp(context.Context) error {
         s.Greeting1 = "Hi!"    // set the greeting 1
         s.Greeting2 = "Hello!" // set the greeting 2
@@ -166,14 +169,16 @@ type StrangerB struct {
         Greeting string `import:"@guess_what"` // import by ref link `@guess_what`
 }
 
+// ResolveRefLink is called along with podPool.MustSetUp
 func (s *StrangerB) ResolveRefLink(refLink string) (string, bool) {
         // refLink == "@guess_what"
         return "the_greeting_2", true // resolve ref link `@guess_what` into ref id `the_greeting_2`
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (s *StrangerB) SetUp(context.Context) error {
-        // fields of the import entries have been initialized, s.Greeting == "Hello!"
-        fmt.Println(s.Greeting) // get the greeting
+        // at this point, `@guess_what` has been imported
+        fmt.Println(s.Greeting) // get the greeting, s.Greeting == "Hello!"
         return nil
 }
 ```
@@ -196,18 +201,18 @@ func main() {
         podPool.MustAddPod(&Foo{})
         podPool.MustAddPod(&Bar{})
         podPool.MustSetUp(context.Background())
-        podPool.TearDown()
         // Output: unknown error
 }
 
 type Foo struct {
         depinj.DummyPod // default implementation of depinj.Pod
 
-        Err error `export:""` // ref id omitted, export by field type `error`
+        Err error `export:""` // ref id omitted, export by field type - error
 }
 
 var ErrUnknown = errors.New("unknown error")
 
+// SetUp is called along with podPool.MustSetUp
 func (f *Foo) SetUp(context.Context) error {
         f.Err = ErrUnknown // set the error
         return nil
@@ -216,12 +221,13 @@ func (f *Foo) SetUp(context.Context) error {
 type Bar struct {
         depinj.DummyPod // default implementation of depinj.Pod
 
-        Err error `import:""` // ref id omitted, import by field type `error`
+        Err error `import:""` // ref id omitted, import by field type - error
 }
 
+// SetUp is called along with podPool.MustSetUp
 func (b *Bar) SetUp(context.Context) error {
-        // fields of the import entries have been initialized, b.Err == ErrUnknown
-        fmt.Println(b.Err) // get the error
+        // at this point, error has been imported
+        fmt.Println(b.Err) // get the error, b.Err == ErrUnknown
         return nil
 }
 ```
