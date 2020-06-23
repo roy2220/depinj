@@ -121,7 +121,7 @@ type Pod interface {
 	// ResolveRefLink resolves the given ref link into a ref id.
 	// It returns false if the ref link is unresolvable. When it
 	// is called, the fields of the import/export/filter entries
-	// have not yet been initialized, don't access theme.
+	// have not yet been initialized, don't access them.
 	ResolveRefLink(refLink string) (refID string, ok bool)
 
 	// SetUp is called along with the setup of PodPool. When it
