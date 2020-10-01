@@ -79,7 +79,7 @@ func (p *pod5) ModifyBar(context.Context) error {
 }
 
 func TestPods(t *testing.T) {
-	pp := depinj.PodPool{}
+	var pp depinj.PodPool
 	for _, p := range []depinj.Pod{&pod5{}, &pod4{}, &pod3{T: t}, &pod2{}, &pod1{}} {
 		err := pp.AddPod(p)
 		assert.NoError(t, err)
@@ -138,8 +138,8 @@ type pod9 struct {
 }
 
 func TestPods2(t *testing.T) {
-	pp := depinj.PodPool{}
-	s := []*podBase{}
+	var pp depinj.PodPool
+	var s []*podBase
 	pb := podBase{T: t, Stack: &s}
 	for _, p := range []depinj.Pod{&pod6{podBase: pb}, &pod7{podBase: pb}, &pod8{podBase: pb}, &pod9{podBase: pb}} {
 		err := pp.AddPod(p)
@@ -162,8 +162,8 @@ func (p *pod10) ModifyFoo(ctx context.Context) error {
 }
 
 func TestPods3(t *testing.T) {
-	pp := depinj.PodPool{}
-	s := []*podBase{}
+	var pp depinj.PodPool
+	var s []*podBase
 	pb := podBase{T: t, Stack: &s}
 	for _, p := range []depinj.Pod{&pod10{podBase: pb}, &pod7{podBase: pb}, &pod8{podBase: pb}, &pod9{podBase: pb}} {
 		err := pp.AddPod(p)
@@ -178,14 +178,14 @@ func TestPods3(t *testing.T) {
 
 type podA1 int
 
-var _ = depinj.Pod(podA1(0))
+var _ depinj.Pod = podA1(0)
 
 func (podA1) ResolveRefLink(refLink string) (refID string, ok bool) { return }
 func (podA1) SetUp(ctx context.Context) (err error)                 { return }
 func (podA1) TearDown()                                             {}
 
 func TestErrInvalidPod(t *testing.T) {
-	p := podA1(0)
+	var p podA1
 
 	for _, tt := range []struct {
 		Pod    depinj.Pod
@@ -196,7 +196,7 @@ func TestErrInvalidPod(t *testing.T) {
 		{&p, depinj.ErrInvalidPod, "depinj: invalid pod: non-structure pointer type; podType=\"*depinj_test.podA1\""},
 		{&depinj.DummyPod{}, depinj.ErrInvalidPod, "depinj: invalid pod: no import/export/filter entry; podType=\"*depinj.DummyPod\""},
 	} {
-		pp := depinj.PodPool{}
+		var pp depinj.PodPool
 		err := pp.AddPod(tt.Pod)
 		assert.True(t, errors.Is(err, tt.Err))
 		assert.EqualError(t, err, tt.ErrMsg)
@@ -284,7 +284,7 @@ func TestFieldParseFailed(t *testing.T) {
 		{&podB9{}, depinj.ErrBadImportEntry, "depinj: bad import entry: field unexported; importEntryPath=\"depinj_test.podB9.foo\""},
 		{&podB10{}, depinj.ErrBadExportEntry, "depinj: bad export entry: field unexported; exportEntryPath=\"depinj_test.podB10.foo\""},
 	} {
-		pp := depinj.PodPool{}
+		var pp depinj.PodPool
 		err := pp.AddPod(tt.Pod)
 		assert.True(t, errors.Is(err, tt.Err))
 		assert.EqualError(t, err, tt.ErrMsg)
@@ -342,7 +342,7 @@ func TestEntryResolve1Failed(t *testing.T) {
 		{[]depinj.Pod{&podC6{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id; exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC6.Foo\" refID=\"Foo\""},
 		{[]depinj.Pod{&podC7{}, &podC7{}}, depinj.ErrBadExportEntry, "depinj: bad export entry: duplicate ref id; exportEntryPath=\"depinj_test.podC7.podC6.Foo\" conflictingExportEntryPath=\"depinj_test.podC7.podC6.Foo\" refID=\"Foo\""},
 	} {
-		pp := depinj.PodPool{}
+		var pp depinj.PodPool
 		for _, p := range tt.Pods {
 			err := pp.AddPod(p)
 			assert.NoError(t, err)
@@ -411,7 +411,7 @@ func TestEntryResolve2Failed(t *testing.T) {
 		{[]depinj.Pod{&podD5{}, &podD6{}}, depinj.ErrBadImportEntry, "depinj: bad import entry: field type mismatch; importEntryPath=\"depinj_test.podD5.Foo\" fieldType=\"int\" expectedFieldType=\"string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
 		{[]depinj.Pod{&podD7{}, &podD6{}}, depinj.ErrBadFilterEntry, "depinj: bad filter entry: field type mismatch; filterEntryPath=\"depinj_test.podD7.Foo\" fieldType=\"*int\" expectedFieldType=\"*string\" exportEntryPath=\"depinj_test.podD6.Foo\""},
 	} {
-		pp := depinj.PodPool{}
+		var pp depinj.PodPool
 		for _, p := range tt.Pods {
 			err := pp.AddPod(p)
 			assert.NoError(t, err)
@@ -485,7 +485,7 @@ func TestEntryResolve3Failed(t *testing.T) {
 		{[]depinj.Pod{&podE4{}, &podE5{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE4.Bar ==> depinj_test.podE5.Bar ... depinj_test.podE5.Foo ==> depinj_test.podE4.Foo\""},
 		{[]depinj.Pod{&podE6{}, &podE7{}}, depinj.ErrPodCircularDependency, "depinj: pod circular dependency; stackTrace=\"depinj_test.podE6.Bar ==> depinj_test.podE7.Bar ... depinj_test.podE7.Foo ==> depinj_test.podE6.Foo\""},
 	} {
-		pp := depinj.PodPool{}
+		var pp depinj.PodPool
 		for _, p := range tt.Pods {
 			err := pp.AddPod(p)
 			assert.NoError(t, err)

@@ -4,14 +4,14 @@ override .DEFAULT_GOAL := all
 ifdef USE_DOCKER
 
 %: force
-	@scripts/make-with-docker.sh $@ $(MAKEFLAGS) USE_DOCKER=
+	@scripts/make-with-docker.bash $@ $(MAKEFLAGS) USE_DOCKER=
 
 Makefile:
 	# a dummy target to suppress bugs of GNU Make
 
 else # ifdef USE_DOCKER
 
-all: force vet lint test
+all: vet lint test
 
 vet: force
 	@go vet $(VETFLAGS) ./...

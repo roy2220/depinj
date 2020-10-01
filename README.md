@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-        podPool := depinj.PodPool{}
+        var podPool depinj.PodPool
         podPool.MustAddPod(&StrangerA{})
         podPool.MustAddPod(&StrangerB{})
         podPool.MustSetUp(context.Background())
@@ -74,7 +74,7 @@ import (
 )
 
 func main() {
-        podPool := depinj.PodPool{}
+        var podPool depinj.PodPool
         podPool.MustAddPod(&StrangerA{})
         podPool.MustAddPod(&StrangerB{})
         podPool.MustAddPod(&Hijacker{})
@@ -142,7 +142,7 @@ import (
 )
 
 func main() {
-        podPool := depinj.PodPool{}
+        var podPool depinj.PodPool
         podPool.MustAddPod(&StrangerA{})
         podPool.MustAddPod(&StrangerB{})
         podPool.MustSetUp(context.Background())
@@ -197,7 +197,7 @@ import (
 )
 
 func main() {
-        podPool := depinj.PodPool{}
+        var podPool depinj.PodPool
         podPool.MustAddPod(&Foo{})
         podPool.MustAddPod(&Bar{})
         podPool.MustSetUp(context.Background())

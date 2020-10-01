@@ -140,7 +140,7 @@ type Pod interface {
 // It could be embedded as the default implementation of Pod.
 type DummyPod struct{}
 
-var _ = Pod(DummyPod{})
+var _ Pod = DummyPod{}
 
 // ResolveRefLink does nothing.
 func (DummyPod) ResolveRefLink(refLink string) (refID string, ok bool) { return }
@@ -161,7 +161,7 @@ var (
 )
 
 const (
-	resolution3PodEntered = resolution3PodState(1 + iota)
+	resolution3PodEntered resolution3PodState = 1 + iota
 	resolution3PodLeft
 )
 
@@ -680,8 +680,8 @@ type resolution12Context struct {
 }
 
 func (rc *resolution12Context) Init() *resolution12Context {
-	rc.fieldType2ExportEntry = map[reflect.Type]*exportEntry{}
-	rc.refID2ExportEntry = map[string]*exportEntry{}
+	rc.fieldType2ExportEntry = make(map[reflect.Type]*exportEntry)
+	rc.refID2ExportEntry = make(map[string]*exportEntry)
 	return rc
 }
 
@@ -722,7 +722,7 @@ type resolution3Context struct {
 }
 
 func (rc *resolution3Context) Init() *resolution3Context {
-	rc.podStates = map[*pod]resolution3PodState{}
+	rc.podStates = make(map[*pod]resolution3PodState)
 	return rc
 }
 
@@ -748,7 +748,7 @@ func (rc *resolution3Context) SetActiveEntryPath(activeEntryPath string) {
 }
 
 func (rc *resolution3Context) DumpStack() string {
-	stackTraceBuffer := bytes.Buffer{}
+	var stackTraceBuffer bytes.Buffer
 
 	for i, stackFrame := range rc.stack {
 		if i >= 1 {
